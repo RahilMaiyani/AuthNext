@@ -31,9 +31,25 @@ export async function GET(req: Request) {
       );
     }
 
-    const users = await User.find().select("-password");
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
+
+    const users = await User.find()
+      .select("-password")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const totalUsers = await User.countDocuments();
+
     return NextResponse.json(
-      { message: "User status updated", users },
+      {
+        users,
+        totalPages: Math.ceil(totalUsers / limit),
+        currentPage: page,
+      },
       { status: 200 },
     );
   } catch (e) {
