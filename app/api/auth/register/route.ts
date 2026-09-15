@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { success, z } from "zod";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 const authSchema = z.object({
   email: z.email({ message: "Invalid email address." }),
@@ -9,6 +11,11 @@ const authSchema = z.object({
     .string()
     .min(5, { message: "Password must be at least 5 character long" })
     .max(64, { message: "Password is too long" }),
+  role: z
+    .enum(["user", "admin"], {
+      message: "Invalid Role",
+    })
+    .default("user"),
 });
 
 export async function POST(req: Request) {
@@ -26,7 +33,7 @@ export async function POST(req: Request) {
     }
 
     const { email, password } = body;
-
+    const { role } = body;
     // console.log("register: Email and password : ", email, password);
 
     if (!email || !password) {
@@ -50,7 +57,7 @@ export async function POST(req: Request) {
     const newUser = await User.create({
       email,
       password,
-      role: "user",
+      role: role || "user",
       status: "pending",
     });
 

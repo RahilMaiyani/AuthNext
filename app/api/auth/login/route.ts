@@ -78,6 +78,11 @@ export async function POST(req: Request) {
     });
 
     // console.log("login: successfull.");
+    // console.log("Login successfull : ", {
+    //   message: "Login successful",
+    //   accessToken,
+    //   user: { email: user.email, role: user.role, status: user.status },
+    // });
     return NextResponse.json(
       {
         message: "Login successful",

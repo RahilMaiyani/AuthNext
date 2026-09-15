@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit;
 
     const users = await User.find()
-      .select("-password")
+      .select(["-password", "-createdAt", "-updatedAt", "-__v"])
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });

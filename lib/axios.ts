@@ -59,7 +59,7 @@ api.interceptors.response.use(
       return new Promise(function (resolve, reject) {
         axios
           .post(
-            "/api/auth/refresh",
+            "/auth/refresh",
             {},
             { baseURL: originalRequest.baseURL, withCredentials: true },
           )
