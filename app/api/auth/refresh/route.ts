@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     }
 
     const user = await User.findById(decoded.userId);
+    // console.log("decoded user in refresh : ", decoded);
+    // console.log("User in refresh : ", user);
     if (!user || user.status !== "approved") {
       (await cookies()).delete("jwt_refresh");
       return NextResponse.json(

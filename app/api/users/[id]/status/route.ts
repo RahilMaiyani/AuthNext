@@ -47,11 +47,10 @@ export async function PATCH(
       );
     }
 
-    // 3. Pass the unwrapped userId to Mongoose
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { status },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     ).select("-password");
 
     if (!updatedUser) {

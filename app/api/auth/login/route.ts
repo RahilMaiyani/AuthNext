@@ -38,11 +38,18 @@ export async function POST(req: Request) {
       );
     }
 
-    if (user.role !== "admin" && user.status === "pending") {
-      return NextResponse.json(
-        { error: "Your account is pending admin approval." },
-        { status: 403 },
-      );
+    if (user.status !== "approved") {
+      if (user.status === "pending") {
+        return NextResponse.json(
+          { error: "Your account is pending admin approval." },
+          { status: 403 },
+        );
+      } else {
+        return NextResponse.json(
+          { error: "Your account is rejected." },
+          { status: 403 },
+        );
+      }
     }
 
     const accessToken = generateAccessToken(user._id.toString(), user.role);
