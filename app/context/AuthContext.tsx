@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api, setAccessToken } from "@/lib/axios";
 import { IUser, AuthContextType } from "@/lib/globalTypes";
+import { useRouter } from "next/navigation";
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -20,7 +21,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const res = await api.post("/auth/refresh");
 
-        const { accessToken, user } = res.data;
+        const { accessToken, user }: { accessToken: string; user: IUser } =
+          res.data;
 
         setAccessToken(accessToken);
         setUser(user);
@@ -33,6 +35,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     hydrateSession();
   }, []);
+
+  const router = useRouter();
 
   const login = (token: string, userData: IUser) => {
     setAccessToken(token);
@@ -47,6 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setAccessToken(null);
       setUser(null);
+      router.push("/login");
     }
   };
 

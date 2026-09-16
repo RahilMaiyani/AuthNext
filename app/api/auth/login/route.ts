@@ -87,7 +87,12 @@ export async function POST(req: Request) {
       {
         message: "Login successful",
         accessToken,
-        user: { email: user.email, role: user.role, status: user.status },
+        user: {
+          _id: user._id.toString(),
+          email: user.email,
+          role: user.role,
+          status: user.status,
+        },
       },
       { status: 200 },
     );

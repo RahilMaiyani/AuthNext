@@ -5,6 +5,7 @@ import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
 import { cookies } from "next/headers";
 import { generateAccessToken } from "@/lib/jwt";
+import { IUser } from "@/lib/globalTypes";
 
 export async function POST(req: Request) {
   try {
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await User.findById(decoded.userId)
+    const user: IUser = await User.findById(decoded.userId)
       .select(["-createdAt", "-updatedAt", "-__v"])
       .lean();
     // console.log("decoded user in refresh : ", decoded);

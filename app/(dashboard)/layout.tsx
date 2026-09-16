@@ -43,6 +43,14 @@ export default function DashboardLayout({
               Admin Roster
             </Link>
           )}
+          {user?.role === "admin" && (
+            <Link
+              href="/admin/pending"
+              className={getLinkClass("/admin/pending")}
+            >
+              Pending Users
+            </Link>
+          )}
         </nav>
 
         {/* Bottom Action */}
