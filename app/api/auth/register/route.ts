@@ -43,6 +43,24 @@ export async function POST(req: Request) {
       );
     }
 
+    if (role === "admin") {
+      const authHeader = req.headers.get("Authorization");
+
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const token = authHeader.split(" ")[1];
+      let decoded: any;
+      decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
+      if (decoded.role !== "admin") {
+        return NextResponse.json(
+          { error: "Forbidden: Admin access required for creating admin." },
+          { status: 403 },
+        );
+      }
+    }
+
     const existing = await User.findOne({ email });
 
     // console.log("register: existing user : ", existing);
