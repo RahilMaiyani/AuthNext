@@ -43,7 +43,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId)
+      .select(["-createdAt", "-updatedAt", "-__v"])
+      .lean();
     // console.log("decoded user in refresh : ", decoded);
     // console.log("User in refresh : ", user);
     if (!user || user.status !== "approved") {
@@ -59,6 +61,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         accessToken: newAccessToken,
+        user,
       },
       { status: 200 },
     );
