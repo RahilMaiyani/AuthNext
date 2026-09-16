@@ -116,3 +116,39 @@ export const changeUserStatus = async ({
     return { error: e.message };
   }
 };
+
+export const changeRole = async ({
+  id,
+  role,
+}: {
+  id: string;
+  role: string;
+}) => {
+  try {
+    await dbConnect();
+    if (!id.trim() || !role) {
+      return { error: "Parameters not received" };
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { returnDocument: "after", runValidators: true },
+    )
+      .select("-password")
+      .lean();
+
+    if (!updatedUser) {
+      return { error: "User not found" };
+    }
+
+    const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
+
+    updateTag("users");
+
+    return { message: "User role updated", user: serializedUser };
+  } catch (e: any) {
+    console.error("Error at change role :", e.message);
+    return { error: e.message };
+  }
+};

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/globalTypes";
+import { useDebounce } from "@/hooks/useDebounce";
+import { changeUserStatus, changeRole } from "@/lib/actions/user.actions";
 
 export default function RosterPage() {
   const [users, setUsers] = useState<IUser[]>([]);
@@ -13,40 +15,68 @@ export default function RosterPage() {
   const [search, setSearch] = useState<string>("");
   const [role, setRole] = useState<string>("");
   const [status, setStatus] = useState<string>("");
-  const [triggerFetch, setTriggerFetch] = useState<number>(0);
 
-  const limit = 10;
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const [roleUpdated, setRoleUpdated] = useState<number>(0);
+
+  const debouncedSearch = useDebounce(search, 500);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, role, status]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const response = await getUsers({ page, limit, search, status, role });
+        const response = await getUsers({
+          page,
+          limit: 10,
+          search: debouncedSearch,
+          role,
+          status,
+        });
+
         if (response.users) {
           setUsers(response.users);
           setTotalPages(response.totalPages);
         }
       } catch (error) {
-        console.error("Failed to fetch roster:", error);
+        console.error("Failed to fetch directory:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUsers();
-  }, [page, triggerFetch]);
-
-  const handleApplyFilters = () => {
-    setPage(1);
-    setTriggerFetch((prev) => prev + 1);
-  };
+  }, [page, debouncedSearch, role, status, roleUpdated]);
 
   const handleClearFilters = () => {
-    setPage(1);
     setSearch("");
     setRole("");
     setStatus("");
-    setTimeout(() => setTriggerFetch((prev) => prev + 1), 0);
+    setPage(1);
+  };
+
+  const handleReject = async (userId: string) => {
+    try {
+      await changeUserStatus({ id: userId, status: "rejected" });
+      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
+    } catch (error) {
+      console.error("Failed to reject user", error);
+      alert("Failed to reject user. Please try again.");
+    }
+  };
+
+  const handleChangeRole = async (id: string, role: string) => {
+    try {
+      await changeRole({ id, role });
+      setRoleUpdated(roleUpdated + 1);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Failed to change role of user", error);
+      alert("Failed to approve user. Please try again.");
+    }
   };
 
   return (
@@ -55,7 +85,7 @@ export default function RosterPage() {
       {/* Filter Bar */}
       <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 flex flex-wrap gap-4 items-end">
         {/* Email Search */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-50">
           <label className="block text-xs font-medium text-slate-400 mb-1">
             Search Email
           </label>
@@ -104,12 +134,6 @@ export default function RosterPage() {
         {/* Action Buttons */}
         <div className="flex gap-2">
           <button
-            onClick={handleApplyFilters}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded transition-colors"
-          >
-            Apply
-          </button>
-          <button
             onClick={handleClearFilters}
             className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded transition-colors"
           >
@@ -152,6 +176,7 @@ export default function RosterPage() {
                 <tr
                   key={u._id}
                   className="hover:bg-slate-700/30 transition-colors"
+                  onClick={() => setSelectedUser(u)}
                 >
                   <td className="px-6 py-4 font-mono text-xs text-slate-500">
                     {u._id}
@@ -200,6 +225,89 @@ export default function RosterPage() {
           Next
         </button>
       </div>
+
+      {/* User Management Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 w-full max-w-md shadow-2xl relative">
+            {/* Close Button (X) */}
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-xl font-bold text-white mb-6">
+              Manage User Access
+            </h2>
+
+            {/* User Details */}
+            <div className="mb-6 space-y-3 bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
+              <p className="text-sm">
+                <span className="text-slate-400 inline-block w-20">ID:</span>{" "}
+                <span className="font-mono text-slate-300">
+                  {selectedUser._id}
+                </span>
+              </p>
+              <p className="text-sm">
+                <span className="text-slate-400 inline-block w-20">Email:</span>{" "}
+                <span className="text-white">{selectedUser.email}</span>
+              </p>
+              <p className="text-sm">
+                <span className="text-slate-400 inline-block w-20">Role:</span>{" "}
+                <span className="text-white capitalize">
+                  {selectedUser.role}
+                </span>
+              </p>
+              <p className="text-sm">
+                <span className="text-slate-400 inline-block w-20">
+                  Status:
+                </span>
+                <span
+                  className={`capitalize ml-1 ${
+                    selectedUser.status === "pending"
+                      ? "text-amber-400"
+                      : selectedUser.status === "approved"
+                        ? "text-emerald-400"
+                        : "text-slate-400"
+                  }`}
+                >
+                  {selectedUser.status}
+                </span>
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <button
+                  disabled={selectedUser.role === "admin"}
+                  onClick={() => handleChangeRole(selectedUser._id, "admin")}
+                  className="flex-1 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Make Admin
+                </button>
+                <button
+                  disabled={selectedUser.role === "user"}
+                  onClick={() => handleChangeRole(selectedUser._id, "user")}
+                  className="flex-1 py-2 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Make User
+                </button>
+              </div>
+
+              <button
+                disabled={selectedUser.status === "rejected"}
+                onClick={() => handleReject(selectedUser._id)}
+                className="w-full py-2 mt-2 bg-red-900/40 text-red-400 border border-red-800 hover:bg-red-600 hover:text-white rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Reject User Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

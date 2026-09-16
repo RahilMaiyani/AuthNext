@@ -28,7 +28,6 @@ const Pending = () => {
   const handleApprove = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "approved" });
-
       setPendingUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
     } catch (error) {
       console.error("Failed to approve user", error);
@@ -39,7 +38,6 @@ const Pending = () => {
   const handleReject = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "rejected" });
-
       setPendingUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
     } catch (error) {
       console.error("Failed to approve user", error);
