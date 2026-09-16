@@ -7,19 +7,32 @@ import User from "@/models/User";
 export const getUsers = async ({
   page,
   limit,
+  search = "",
+  role = "",
+  status = "",
 }: {
   page: number;
   limit: number;
+  search: string;
+  role: string;
+  status: string;
 }) => {
   "use cache";
-  cacheTag("users", page.toString(), limit.toString());
+  cacheTag("users", page.toString(), limit.toString(), search, role, status);
   cacheLife("minutes");
 
   try {
     const skip = (page - 1) * limit;
     await dbConnect();
 
-    const users = await User.find()
+    const query: any = {};
+    if (search) {
+      query.email = { $regex: search, $options: "i" };
+    }
+    if (role) query.role = role;
+    if (status) query.status = status;
+
+    const users = await User.find(query)
       .select(["-password", "-createdAt", "-updatedAt", "-__v"])
       .skip(skip)
       .limit(limit)
@@ -31,11 +44,11 @@ export const getUsers = async ({
       _id: user._id.toString(),
     }));
 
-    const totalUsers = await User.countDocuments();
+    const totalUsers = await User.countDocuments(query);
 
     return {
       users: serializedUsers,
-      totalPages: Math.ceil(totalUsers / limit),
+      totalPages: Math.ceil(totalUsers / limit) || 1,
       currentPages: page,
     };
   } catch (e: any) {

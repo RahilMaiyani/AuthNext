@@ -27,10 +27,10 @@ export default function LoginPage() {
       const { accessToken, user } = response.data;
       login(accessToken, user);
 
-      if (user.role === "admin") {
-        router.push("/admin");
-      } else {
+      if (user) {
         router.push("/user");
+      } else {
+        router.push("/login");
       }
     } catch (err: any) {
       const errorMsg =

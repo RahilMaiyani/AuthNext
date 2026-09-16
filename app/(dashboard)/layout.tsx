@@ -36,20 +36,21 @@ export default function DashboardLayout({
           <Link href="/user" className={getLinkClass("/user")}>
             My Dashboard
           </Link>
-
-          {/* Conditionally render the Admin link */}
           {user?.role === "admin" && (
-            <Link href="/admin" className={getLinkClass("/admin")}>
-              Admin Roster
-            </Link>
-          )}
-          {user?.role === "admin" && (
-            <Link
-              href="/admin/pending"
-              className={getLinkClass("/admin/pending")}
-            >
-              Pending Users
-            </Link>
+            <>
+              <Link
+                href="/admin/pending"
+                className={getLinkClass("/admin/pending")}
+              >
+                Pending Users
+              </Link>
+              <Link
+                href="/admin/users"
+                className={getLinkClass("/admin/users")}
+              >
+                User Directory
+              </Link>
+            </>
           )}
         </nav>
 

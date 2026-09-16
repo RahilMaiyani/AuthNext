@@ -10,9 +10,7 @@ export default function RootPage() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (user?.role === "admin") {
-        router.push("/admin");
-      } else if (user?.role === "user") {
+      if (user) {
         router.push("/user");
       } else {
         router.push("/login");
