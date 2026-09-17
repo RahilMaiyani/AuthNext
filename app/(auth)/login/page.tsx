@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/axios";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -37,7 +37,7 @@ export default function LoginPage() {
         err?.response?.data?.message ||
         "Invalid credentials. Please try again.";
       setError(errorMsg);
-      console.error("Login Failed:", err?.response?.data || err.message);
+      console.log("Login Failed:", err?.response?.data || err.message);
     } finally {
       setIsSubmitting(false);
     }
