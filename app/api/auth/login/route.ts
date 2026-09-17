@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json(
         { message: "Invalid credentials" },
-        { status: 401 },
+        { status: 403 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     if (!isMatch) {
       return NextResponse.json(
         { message: "Invalid Password" },
-        { status: 401 },
+        { status: 403 },
       );
     }
 

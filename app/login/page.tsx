@@ -1,4 +1,3 @@
-// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -34,7 +33,9 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       const errorMsg =
-        err?.response?.data?.error || "Invalid credentials. Please try again.";
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "Invalid credentials. Please try again.";
       setError(errorMsg);
       console.error("Login Failed:", err?.response?.data || err.message);
     } finally {
