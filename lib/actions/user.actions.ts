@@ -3,6 +3,7 @@
 import { cacheLife, cacheTag, updateTag } from "next/cache";
 import dbConnect from "../dbConnect";
 import User from "@/models/User";
+import bcrypt from "bcryptjs";
 
 export const getUsers = async ({
   page,
@@ -150,5 +151,55 @@ export const changeRole = async ({
   } catch (e: any) {
     console.error("Error at change role :", e.message);
     return { error: e.message };
+  }
+};
+
+export const resetPassword = async ({
+  userId = "",
+  oldPassword,
+  newPassword,
+}: {
+  userId: string | undefined;
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  try {
+    await dbConnect();
+
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      console.log("User NOT found.");
+      return { success: false, message: "User not found" };
+    }
+
+    const isOldPassMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPassMatch) {
+      console.log("Old password Incorrect.");
+      return { success: false, message: "Old password Incorrect." };
+    }
+
+    if (oldPassword === newPassword) {
+      console.log("Password must be different from previous");
+      return {
+        success: false,
+        message: "Password must be different from previous",
+      };
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { password: hashedPassword },
+      { returnDocument: "after" },
+    );
+    if (!updatedUser) {
+      return { success: false, message: "Error reseting password" };
+    }
+
+    return { success: true, message: "Password successfully reseted." };
+  } catch (e: any) {
+    console.error("Error at reset password :", e.message);
+    return { success: false, message: e.message };
   }
 };

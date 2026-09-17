@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { message: "User password changes successfully." },
+      { message: "User password change successfully." },
       { status: 200 },
     );
   } catch (e: any) {
