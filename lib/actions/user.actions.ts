@@ -1,6 +1,6 @@
 "use server";
 
-import { cacheLife, cacheTag, updateTag } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import dbConnect from "../dbConnect";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";

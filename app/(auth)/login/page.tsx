@@ -96,7 +96,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-2.5 rounded-md font-medium text-white transition-colors ${
+            className={`w-full py-2.5 rounded-md font-medium text-white transition-colors cursor-pointer ${
               isSubmitting
                 ? "bg-blue-600/50 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"

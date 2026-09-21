@@ -65,7 +65,7 @@ export default function DashboardLayout({
         </Link>
         <button
           onClick={logout}
-          className="mt-auto px-4 py-2 text-left text-red-400 hover:bg-slate-700 rounded-md transition-colors"
+          className="mt-auto px-4 py-2 text-left text-red-400 hover:bg-slate-700 rounded-md transition-colors cursor-pointer"
         >
           Logout Session
         </button>
