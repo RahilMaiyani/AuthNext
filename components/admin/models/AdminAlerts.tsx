@@ -10,7 +10,7 @@ export default function AdminAlerts() {
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      toast(`New Registration: ${data.email}`, {
+      toast(`New Registration: ${data.email} for ${data.role}`, {
         icon: "🚨",
         duration: 5000,
       });

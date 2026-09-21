@@ -16,7 +16,7 @@ export async function GET(req: Request) {
         const newUser = change.fullDocument;
         const payload = JSON.stringify({
           email: newUser.email,
-          status: newUser.status,
+          role: newUser.role,
         });
 
         controller.enqueue(new TextEncoder().encode(`data: ${payload}\n\n`));
