@@ -58,7 +58,7 @@ const ResetPassword = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
-      <div className="w-full max-w-md bg-slate-800 rounded-lg shadow-xl p-8 border border-slate-700">
+      <div className="w-full max-w-xl bg-slate-800 rounded-lg shadow-xl p-8 border border-slate-700">
         <h1 className="text-3xl font-bold text-white mb-6 text-center">
           Reset Password
         </h1>
@@ -78,7 +78,7 @@ const ResetPassword = () => {
         <div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <label
-              className="block text-sm font-medium text-slate-300 mb-1"
+              className="block text-md font-medium text-slate-300 mb-1"
               htmlFor="oldPassword"
             >
               Old Password :
@@ -94,7 +94,7 @@ const ResetPassword = () => {
             <br />
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-slate-300 mb-1"
+              className="block text-md font-medium text-slate-300 mb-1"
             >
               Confirm Password :
             </label>
@@ -109,7 +109,7 @@ const ResetPassword = () => {
             <br />
             <label
               htmlFor="newPassword"
-              className="block text-sm font-medium text-slate-300 mb-1"
+              className="block text-md font-medium text-slate-300 mb-1"
             >
               New Password :
             </label>

@@ -23,7 +23,7 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-slate-900 text-white">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-800 flex flex-col p-4 shadow-lg border-r border-slate-700">
+      <aside className="w-64 bg-slate-800 flex flex-col p-5 shadow-lg border-r border-slate-700 rounded-r-2xl">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-blue-400">SystemPortal</h2>
           <p className="text-sm text-slate-400 mt-1">{user?.email}</p>

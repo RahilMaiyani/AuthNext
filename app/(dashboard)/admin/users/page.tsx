@@ -48,7 +48,6 @@ export default function RosterPage() {
         setIsLoading(false);
       }
     };
-
     fetchUsers();
   }, [page, debouncedSearch, role, status, roleUpdated]);
 
@@ -107,7 +106,7 @@ export default function RosterPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by email..."
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -119,7 +118,7 @@ export default function RosterPage() {
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
@@ -135,7 +134,7 @@ export default function RosterPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-sm text-white focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
@@ -148,7 +147,7 @@ export default function RosterPage() {
         <div className="flex gap-2">
           <button
             onClick={handleClearFilters}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded transition-colors"
+            className="px-4 py-2 bg-slate-700 hover:bg-red-500/90 text-slate-300 text-sm rounded-xl transition-colors"
           >
             Clear
           </button>
@@ -198,7 +197,7 @@ export default function RosterPage() {
                   <td className="px-6 py-4 capitalize">{u.role}</td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2 py-1 rounded text-xs capitalize ${
+                      className={`px-3 py-2 rounded-full text-xs capitalize ${
                         u.status === "pending"
                           ? "bg-amber-900/50 text-amber-400"
                           : u.status === "approved"
@@ -223,7 +222,7 @@ export default function RosterPage() {
           disabled={page === 1 || isLoading}
           className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-all"
         >
-          Previous
+          {"<"}
         </button>
 
         <span className="text-slate-400 font-medium">
@@ -235,7 +234,7 @@ export default function RosterPage() {
           disabled={page === totalPages || isLoading}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-all"
         >
-          Next
+          {">"}
         </button>
       </div>
 
