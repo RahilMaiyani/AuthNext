@@ -4,10 +4,16 @@ import { useEffect, useState } from "react";
 import { getUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/globalTypes";
 import { useDebounce } from "@/hooks/useDebounce";
-import { changeUserStatus, changeRole } from "@/lib/actions/user.actions";
+import { useAuth } from "@/app/context/AuthContext";
+import {
+  changeUserStatus,
+  changeRole,
+  deleteUser,
+} from "@/lib/actions/user.actions";
 import SelectedUsersModel from "@/components/admin/models/SelectedUsersModel";
 
 export default function RosterPage() {
+  const { user } = useAuth();
   const [users, setUsers] = useState<IUser[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -75,7 +81,7 @@ export default function RosterPage() {
       setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
       setSelectedUser(null);
     } catch (error) {
-      console.error("Failed to approve user", error);
+      console.log("Failed to approve user", error);
       alert("Failed to approve user. Please try again.");
     }
   };
@@ -86,8 +92,17 @@ export default function RosterPage() {
       setRoleUpdated(roleUpdated + 1);
       setSelectedUser(null);
     } catch (error) {
-      console.error("Failed to change role of user", error);
-      alert("Failed to approve user. Please try again.");
+      console.log("Failed to change role of user", error);
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      const response = await deleteUser(user?._id, id);
+      console.log(response.message);
+    } catch (error) {
+      console.log("Failed to delete user", error);
+      alert("Failed to delete user. Please try again.");
     }
   };
 

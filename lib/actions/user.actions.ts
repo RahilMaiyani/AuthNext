@@ -203,3 +203,40 @@ export const resetPassword = async ({
     return { success: false, message: e.message };
   }
 };
+
+export const deleteUser = async (userId: string = "", id: string) => {
+  try {
+    await dbConnect();
+
+    if (!userId.trim() || !id.trim()) {
+      return { success: false, message: "Parameter not received" };
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return { success: false, message: "User not found." };
+    }
+
+    if (user.role === "admin") {
+      if (userId !== process.env.SUPER_ADMIN_ID) {
+        return {
+          success: false,
+          message: "Forbidden: Only super admin can delete other admin.",
+        };
+      }
+    }
+
+    const deletedUser = await User.findByIdAndDelete(id, {
+      returnDocument: "after",
+    });
+
+    if (!deletedUser) {
+      return { success: false, message: "User not Deleted." };
+    }
+
+    return { success: true, message: "Successfully deleted user", deletedUser };
+  } catch (e: any) {
+    console.error("Error at reset password :", e.message);
+    return { success: false, message: e.message };
+  }
+};
