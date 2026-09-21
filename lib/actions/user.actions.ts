@@ -4,6 +4,7 @@ import { cacheLife, cacheTag, updateTag } from "next/cache";
 import dbConnect from "../dbConnect";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
+import { revalidateTag } from "next/cache";
 
 export const getUsers = async ({
   page,
@@ -109,8 +110,7 @@ export const changeUserStatus = async ({
 
     const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
 
-    updateTag("users");
-
+    revalidateTag("users", { expire: 0 });
     return { message: "User status updated", user: serializedUser };
   } catch (e: any) {
     console.error("Error at approveUser :", e.message);
@@ -145,7 +145,7 @@ export const changeRole = async ({
 
     const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
 
-    updateTag("users");
+    revalidateTag("users", { expire: 0 });
 
     return { message: "User role updated", user: serializedUser };
   } catch (e: any) {
@@ -204,7 +204,7 @@ export const resetPassword = async ({
   }
 };
 
-export const deleteUser = async (userId: string = "", id: string) => {
+export const deleteUser = async (userId: string = "", id: string = "") => {
   try {
     await dbConnect();
 
@@ -234,7 +234,9 @@ export const deleteUser = async (userId: string = "", id: string) => {
       return { success: false, message: "User not Deleted." };
     }
 
-    return { success: true, message: "Successfully deleted user", deletedUser };
+    revalidateTag("users", { expire: 0 });
+
+    return { success: true, message: "Successfully deleted user" };
   } catch (e: any) {
     console.error("Error at reset password :", e.message);
     return { success: false, message: e.message };

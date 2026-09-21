@@ -24,7 +24,6 @@ export default function RosterPage() {
   const [status, setStatus] = useState<string>("");
 
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
-  const [roleUpdated, setRoleUpdated] = useState<number>(0);
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -55,7 +54,7 @@ export default function RosterPage() {
       }
     };
     fetchUsers();
-  }, [page, debouncedSearch, role, status, roleUpdated]);
+  }, [page, debouncedSearch, role, status]);
 
   const handleClearFilters = () => {
     setSearch("");
@@ -67,7 +66,9 @@ export default function RosterPage() {
   const handleReject = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "rejected" });
-      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
+      setUsers((prev) =>
+        prev.map((u) => (u._id === userId ? { ...u, status: "rejected" } : u)),
+      );
       setSelectedUser(null);
     } catch (error) {
       console.error("Failed to reject user", error);
@@ -78,7 +79,9 @@ export default function RosterPage() {
   const handleApprove = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "approved" });
-      setUsers((prevUsers) => prevUsers.filter((u) => u._id !== userId));
+      setUsers((prev) =>
+        prev.map((u) => (u._id === userId ? { ...u, status: "approved" } : u)),
+      );
       setSelectedUser(null);
     } catch (error) {
       console.log("Failed to approve user", error);
@@ -89,19 +92,23 @@ export default function RosterPage() {
   const handleChangeRole = async (id: string, role: string) => {
     try {
       await changeRole({ id, role });
-      setRoleUpdated(roleUpdated + 1);
+      setUsers((prev) =>
+        prev.map((u) => (u._id === id ? { ...u, role: role } : u)),
+      );
       setSelectedUser(null);
     } catch (error) {
       console.log("Failed to change role of user", error);
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
+  const handleDeleteUser = async () => {
     try {
-      const response = await deleteUser(user?._id, id);
+      const response = await deleteUser(user?._id, selectedUser?._id);
+      setUsers((prev) => prev.filter((u) => u._id !== selectedUser?._id));
+      setSelectedUser(null);
       console.log(response.message);
-    } catch (error) {
-      console.log("Failed to delete user", error);
+    } catch (error: any) {
+      console.log("Failed to delete user", error.message);
       alert("Failed to delete user. Please try again.");
     }
   };
@@ -261,6 +268,7 @@ export default function RosterPage() {
           onChangeRole={handleChangeRole}
           onReject={handleReject}
           onApprove={handleApprove}
+          onDelete={handleDeleteUser}
         />
       )}
     </div>

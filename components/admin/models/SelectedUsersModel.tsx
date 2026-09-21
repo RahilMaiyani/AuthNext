@@ -7,6 +7,7 @@ interface UserModalProps {
   onChangeRole: (id: string, role: string) => Promise<void>;
   onReject: (id: string) => Promise<void>;
   onApprove: (id: string) => Promise<void>;
+  onDelete: () => void;
 }
 
 export default function UserModal({
@@ -15,6 +16,7 @@ export default function UserModal({
   onChangeRole,
   onReject,
   onApprove,
+  onDelete,
 }: UserModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -33,6 +35,12 @@ export default function UserModal({
   const handleApproveClick = async () => {
     setIsProcessing(true);
     await onApprove(user._id);
+    setIsProcessing(false);
+  };
+
+  const handleDeleteClick = async () => {
+    setIsProcessing(true);
+    await onDelete();
     setIsProcessing(false);
   };
 
@@ -119,6 +127,15 @@ export default function UserModal({
               className="flex-1 py-2 bg-red-900/40 text-red-400 border border-red-800 hover:bg-red-600 hover:text-white rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Reject User Access
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <button
+              disabled={isProcessing}
+              onClick={handleDeleteClick}
+              className="w-full py-2 bg-red-600 text-white border border-red-800 hover:bg-red-800 hover:text-red-400 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Delete User
             </button>
           </div>
         </div>
