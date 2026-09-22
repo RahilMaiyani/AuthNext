@@ -16,7 +16,7 @@ const ConfirmDeleteModel = ({
       onClick={onCancel}
     >
       <div
-        className="bg-slate-800 p-6 h-[47vh] rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl relative"
+        className="bg-slate-800 p-6 h-[50vh] rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <h1 className="text-white text-xl font-bold p-2 mb-15">

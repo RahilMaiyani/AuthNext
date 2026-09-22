@@ -1,4 +1,3 @@
-// app/(dashboard)/layout.tsx
 "use client";
 
 import { useState } from "react";
@@ -29,7 +28,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-slate-900 text-white overflow-hidden">
       {/* Mobile Top Header (Visible only on md<) */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-800 border-b border-slate-700 z-40 flex items-center justify-between px-4">
-        <h2 className="text-xl font-bold text-blue-400">SystemPortal</h2>
+        <h2 className="text-xl font-bold text-blue-400">AuthPortal</h2>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 bg-slate-700 rounded-lg text-slate-300 active:scale-95 transition-transform"
@@ -70,7 +69,7 @@ export default function DashboardLayout({
         <div className="mb-8 flex justify-between items-start mt-4 md:mt-0">
           <div>
             <h2 className="text-2xl font-bold text-blue-400 hidden md:block">
-              SystemPortal
+              AuthPortal
             </h2>
             <p className="text-sm text-slate-400 mt-1">{user?.email}</p>
             <p className="text-xs font-mono text-slate-500 uppercase mt-2 px-2 py-1 bg-slate-900 inline-block rounded-md border border-slate-700">

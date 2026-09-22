@@ -49,7 +49,7 @@ export default function UserModal({
   const onConfirmClose = async () => {
     setIsProcessing(true);
     setConfirmDelete(false);
-    await onClose();
+    // await onClose();
     setIsProcessing(false);
   };
 
@@ -59,7 +59,7 @@ export default function UserModal({
       onClick={onClose}
     >
       <div
-        className="bg-slate-800 p-6 rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl relative"
+        className="bg-slate-800 p-6 h-[50vh] rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
