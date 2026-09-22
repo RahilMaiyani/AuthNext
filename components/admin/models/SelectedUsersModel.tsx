@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IUser } from "@/lib/globalTypes";
+import ConfirmDeleteModel from "./ConfirmDeleteModel";
 
 interface UserModalProps {
   user: IUser;
@@ -19,6 +20,7 @@ export default function UserModal({
   onDelete,
 }: UserModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
 
   const handleRoleClick = async (role: string) => {
     setIsProcessing(true);
@@ -44,13 +46,20 @@ export default function UserModal({
     setIsProcessing(false);
   };
 
+  const onConfirmClose = async () => {
+    setIsProcessing(true);
+    setConfirmDelete(false);
+    await onClose();
+    setIsProcessing(false);
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="bg-slate-800 p-6 rounded-xl border border-slate-700 w-full max-w-md shadow-2xl relative"
+        className="bg-slate-800 p-6 rounded-xl border border-slate-700 w-full max-w-lg shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -132,7 +141,7 @@ export default function UserModal({
           <div className="flex gap-2">
             <button
               disabled={isProcessing}
-              onClick={handleDeleteClick}
+              onClick={() => setConfirmDelete(true)}
               className="w-full py-2 bg-red-600 text-white border border-red-800 hover:bg-red-800 hover:text-red-400 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Delete User
@@ -140,6 +149,13 @@ export default function UserModal({
           </div>
         </div>
       </div>
+      {confirmDelete && (
+        <ConfirmDeleteModel
+          userEmail={user.email}
+          onConfirm={handleDeleteClick}
+          onCancel={onConfirmClose}
+        />
+      )}
     </div>
   );
 }
