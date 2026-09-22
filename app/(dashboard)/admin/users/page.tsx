@@ -11,6 +11,7 @@ import {
   deleteUser,
 } from "@/lib/actions/user.actions";
 import SelectedUsersModel from "@/components/admin/models/SelectedUsersModel";
+import toast from "react-hot-toast";
 
 export default function RosterPage() {
   const { user } = useAuth();
@@ -66,6 +67,7 @@ export default function RosterPage() {
   const handleReject = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "rejected" });
+      toast(`${selectedUser?.email} is Rejected`);
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, status: "rejected" } : u)),
       );
@@ -79,6 +81,7 @@ export default function RosterPage() {
   const handleApprove = async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "approved" });
+      toast(`${selectedUser?.email} is Approved`);
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, status: "approved" } : u)),
       );
@@ -92,6 +95,7 @@ export default function RosterPage() {
   const handleChangeRole = async (id: string, role: string) => {
     try {
       await changeRole({ id, role });
+      toast(`Role changed to ${role} for ${selectedUser?.email}`);
       setUsers((prev) =>
         prev.map((u) => (u._id === id ? { ...u, role: role } : u)),
       );
@@ -104,6 +108,7 @@ export default function RosterPage() {
   const handleDeleteUser = async () => {
     try {
       const response = await deleteUser(user?._id, selectedUser?._id);
+      toast(`${selectedUser?.email} is Deleted`);
       setUsers((prev) => prev.filter((u) => u._id !== selectedUser?._id));
       setSelectedUser(null);
       console.log(response.message);
