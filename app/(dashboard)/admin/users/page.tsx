@@ -181,7 +181,7 @@ export default function RosterPage() {
         </div>
       </div>
       {/* Data Table */}
-      <div className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden shadow-xl">
+      <div className="bg-slate-800 rounded-lg border border-slate-700 max-lg:overflow-scroll lg:overflow-hidden shadow-xl">
         <table className="w-full text-left text-sm text-slate-300">
           <thead className="bg-slate-900/50 text-slate-400 border-b border-slate-700 uppercase">
             <tr>

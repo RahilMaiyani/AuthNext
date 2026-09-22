@@ -108,14 +108,22 @@ export default function UserModal({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <button
-              disabled={isProcessing || user.role === "admin"}
+              disabled={
+                isProcessing ||
+                user.role === "admin" ||
+                user.status === "pending"
+              }
               onClick={() => handleRoleClick("admin")}
               className="flex-1 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Make Admin
             </button>
             <button
-              disabled={isProcessing || user.role === "user"}
+              disabled={
+                isProcessing ||
+                user.role === "user" ||
+                user.status === "pending"
+              }
               onClick={() => handleRoleClick("user")}
               className="flex-1 py-2 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
