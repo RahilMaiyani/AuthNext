@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/axios";
 import Link from "next/link";
+import { register } from "@/lib/actions/user.actions";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -21,11 +22,16 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/auth/register", { email, password });
+      // const response = await api.post("/auth/register", { email, password });
+      const response = await register({ email, password });
 
-      const { message, newUser } = response.data;
+      const { success, message, newUser } = response;
+      if (!success) {
+        throw new Error(message);
+      }
 
       if (newUser) {
+        toast("Redirecting to Login...");
         (setConfirmation(message), " redirecting to Login...");
         setTimeout(() => {
           router.push("/login");
@@ -33,10 +39,7 @@ export default function RegisterPage() {
         }, 3000);
       }
     } catch (err: any) {
-      const errorMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        "Invalid! Please try again.";
+      const errorMsg = err?.message || "Invalid! Please try again.";
       setError(errorMsg);
       console.log("Registration Failed:", err?.response?.data || err.message);
     } finally {

@@ -2,7 +2,7 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { IUser } from "@/lib/globalTypes";
+import { revalidateTag } from "next/cache";
 
 export async function DELETE(
   req: Request,
@@ -61,6 +61,8 @@ export async function DELETE(
         { status: 500 },
       );
     }
+
+    revalidateTag("users", { expire: 0 });
 
     return NextResponse.json(
       {

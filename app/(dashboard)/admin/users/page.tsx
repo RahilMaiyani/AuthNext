@@ -33,37 +33,35 @@ export default function RosterPage() {
     setPage(1);
   }, [debouncedSearch, role, status]);
 
-  useEffect(() => {
-    let isSubscribed = true;
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await getUsers({
+        page,
+        limit: 10,
+        search: debouncedSearch,
+        role,
+        status,
+      });
 
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getUsers({
-          page,
-          limit: 10,
-          search: debouncedSearch,
-          role,
-          status,
-        });
+      if (response.users) {
+        setUsers(response.users);
+        setTotalPages(response.totalPages);
 
-        if (isSubscribed && response.users) {
-          setUsers(response.users);
-          setTotalPages(response.totalPages);
+        if (response.users.length === 0 && page > 1) {
+          setPage((p) => p - 1);
         }
-      } catch (error) {
-        if (isSubscribed) console.error("Failed to fetch directory:", error);
-      } finally {
-        if (isSubscribed) setIsLoading(false);
       }
-    };
-
-    fetchUsers();
-
-    return () => {
-      isSubscribed = false;
-    };
+    } catch (error) {
+      console.error("Failed to fetch directory:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [page, debouncedSearch, role, status]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleClearFilters = () => {
     setSearch("");
@@ -133,7 +131,8 @@ export default function RosterPage() {
       toast(`${targetEmail} is Deleted`);
       setUsers((prev) => prev.filter((u) => u._id !== targetId));
       setSelectedUser(null);
-      console.log(response.message);
+      await fetchUsers();
+      // console.log(response.message);
     } catch (error: any) {
       console.log("Failed to delete user", error.message);
       alert("Failed to delete user. Please try again.");

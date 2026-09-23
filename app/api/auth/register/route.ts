@@ -4,6 +4,7 @@ import User from "@/models/User";
 import { success, z } from "zod";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import { revalidateTag } from "next/cache";
 
 const authSchema = z.object({
   email: z.email({ message: "Invalid email address." }),
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const existing = await User.findOne({ email });
+    const existing = await User.exists({ email });
 
     // console.log("register: existing user : ", existing);
 
@@ -80,6 +81,7 @@ export async function POST(req: Request) {
     });
 
     // console.log("register: new user created : ", newUser);
+    revalidateTag("users", { expire: 0 });
 
     return NextResponse.json(
       { message: "User created successfully.", newUser },

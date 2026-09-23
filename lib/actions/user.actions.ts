@@ -6,6 +6,60 @@ import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { revalidateTag } from "next/cache";
 
+export const register = async ({
+  email,
+  password,
+  role,
+}: {
+  email: string;
+  password: string;
+  role?: string;
+}) => {
+  try {
+    if (!email || !password) {
+      console.log("Invalid Credentials.");
+      return { success: false, message: "Invalid Credentials." };
+    }
+    if (role) {
+      if (!["user", "admin"].includes(role!)) {
+        console.log("Invalid value of role");
+        return { success: false, message: "Invalid value of role" };
+      }
+    }
+
+    const existing = await User.exists({ email });
+
+    if (existing) {
+      console.log("User already exists.");
+      return { success: false, message: "User already exists." };
+    }
+
+    const newUser = await User.create({
+      email,
+      password,
+      role: role || "user",
+      status: "pending",
+    });
+
+    const serializedUser = {
+      ...newUser.toObject(),
+      _id: newUser._id.toString(),
+    };
+
+    revalidateTag("users", { expire: 0 });
+
+    console.log("User registerd successfully.");
+    return {
+      success: true,
+      message: "User registerd successfully.",
+      newUser: serializedUser,
+    };
+  } catch (e: any) {
+    console.error("Error at getUsers :", e.message);
+    return { success: false, message: e.message };
+  }
+};
+
 export const getUsers = async ({
   page,
   limit,
@@ -226,9 +280,7 @@ export const deleteUser = async (userId: string = "", id: string = "") => {
       }
     }
 
-    const deletedUser = await User.findByIdAndDelete(id, {
-      returnDocument: "after",
-    });
+    const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return { success: false, message: "User not Deleted." };
