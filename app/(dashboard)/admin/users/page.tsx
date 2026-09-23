@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/globalTypes";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -11,6 +11,7 @@ import {
   deleteUser,
 } from "@/lib/actions/user.actions";
 import SelectedUsersModel from "@/components/admin/models/SelectedUsersModel";
+import { UserTableRow } from "@/components/admin/UserTableRow";
 import toast from "react-hot-toast";
 
 export default function RosterPage() {
@@ -33,6 +34,8 @@ export default function RosterPage() {
   }, [debouncedSearch, role, status]);
 
   useEffect(() => {
+    let isSubscribed = true;
+
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
@@ -44,17 +47,22 @@ export default function RosterPage() {
           status,
         });
 
-        if (response.users) {
+        if (isSubscribed && response.users) {
           setUsers(response.users);
           setTotalPages(response.totalPages);
         }
       } catch (error) {
-        console.error("Failed to fetch directory:", error);
+        if (isSubscribed) console.error("Failed to fetch directory:", error);
       } finally {
-        setIsLoading(false);
+        if (isSubscribed) setIsLoading(false);
       }
     };
+
     fetchUsers();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [page, debouncedSearch, role, status]);
 
   const handleClearFilters = () => {
@@ -64,66 +72,84 @@ export default function RosterPage() {
     setPage(1);
   };
 
-  const handleReject = async (userId: string) => {
+  const handleSelectUser = useCallback((u: IUser) => {
+    setSelectedUser(u);
+  }, []);
+
+  const handleReject = useCallback(async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "rejected" });
-      toast(`${selectedUser?.email} is Rejected`);
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, status: "rejected" } : u)),
       );
-      setSelectedUser(null);
+      setSelectedUser((current) => {
+        if (current) toast(`${current.email} is Rejected`);
+        return null;
+      });
     } catch (error) {
       console.error("Failed to reject user", error);
       alert("Failed to reject user. Please try again.");
     }
-  };
+  }, []);
 
-  const handleApprove = async (userId: string) => {
+  const handleApprove = useCallback(async (userId: string) => {
     try {
       await changeUserStatus({ id: userId, status: "approved" });
-      toast(`${selectedUser?.email} is Approved`);
       setUsers((prev) =>
         prev.map((u) => (u._id === userId ? { ...u, status: "approved" } : u)),
       );
-      setSelectedUser(null);
+      setSelectedUser((current) => {
+        if (current) toast(`${current.email} is Approved`);
+        return null;
+      });
     } catch (error) {
       console.log("Failed to approve user", error);
       alert("Failed to approve user. Please try again.");
     }
-  };
+  }, []);
 
-  const handleChangeRole = async (id: string, role: string) => {
+  const handleChangeRole = useCallback(async (id: string, newRole: string) => {
     try {
-      await changeRole({ id, role });
-      toast(`Role changed to ${role} for ${selectedUser?.email}`);
+      await changeRole({ id, role: newRole });
       setUsers((prev) =>
-        prev.map((u) => (u._id === id ? { ...u, role: role } : u)),
+        prev.map((u) => (u._id === id ? { ...u, role: newRole } : u)),
       );
-      setSelectedUser(null);
+      setSelectedUser((current) => {
+        if (current) toast(`Role changed to ${newRole} for ${current.email}`);
+        return null;
+      });
     } catch (error) {
       console.log("Failed to change role of user", error);
     }
-  };
+  }, []);
 
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = useCallback(async () => {
+    if (!selectedUser) return;
+    const targetId = selectedUser._id;
+    const targetEmail = selectedUser.email;
+
     try {
-      const response = await deleteUser(user?._id, selectedUser?._id);
-      toast(`${selectedUser?.email} is Deleted`);
-      setUsers((prev) => prev.filter((u) => u._id !== selectedUser?._id));
+      const response = await deleteUser(user?._id, targetId);
+      toast(`${targetEmail} is Deleted`);
+      setUsers((prev) => prev.filter((u) => u._id !== targetId));
       setSelectedUser(null);
       console.log(response.message);
     } catch (error: any) {
       console.log("Failed to delete user", error.message);
       alert("Failed to delete user. Please try again.");
     }
-  };
+  }, [selectedUser, user?._id]);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedUser(null);
+  }, []);
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6">All Users</h1>
+
       {/* Filter Bar */}
       <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 flex flex-wrap gap-4 items-end">
-        {/* Email Search */}
         <div className="flex-1 min-w-50">
           <label className="block text-xs font-medium text-slate-400 mb-1">
             Search Email
@@ -137,7 +163,6 @@ export default function RosterPage() {
           />
         </div>
 
-        {/* Role Filter */}
         <div className="w-40">
           <label className="block text-xs font-medium text-slate-400 mb-1">
             Role
@@ -153,7 +178,6 @@ export default function RosterPage() {
           </select>
         </div>
 
-        {/* Status Filter */}
         <div className="w-40">
           <label className="block text-xs font-medium text-slate-400 mb-1">
             Status
@@ -170,7 +194,6 @@ export default function RosterPage() {
           </select>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-2">
           <button
             onClick={handleClearFilters}
@@ -180,6 +203,7 @@ export default function RosterPage() {
           </button>
         </div>
       </div>
+
       {/* Data Table */}
       <div className="bg-slate-800 rounded-lg border border-slate-700 max-lg:overflow-scroll lg:overflow-hidden shadow-xl">
         <table className="w-full text-left text-sm text-slate-300">
@@ -212,30 +236,11 @@ export default function RosterPage() {
               </tr>
             ) : (
               users.map((u) => (
-                <tr
+                <UserTableRow
                   key={u._id}
-                  className="hover:bg-slate-700/30 transition-colors"
-                  onClick={() => setSelectedUser(u)}
-                >
-                  <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                    {u._id}
-                  </td>
-                  <td className="px-6 py-4 text-white">{u.email}</td>
-                  <td className="px-6 py-4 capitalize">{u.role}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-2 rounded-full text-xs capitalize ${
-                        u.status === "pending"
-                          ? "bg-amber-900/50 text-amber-400"
-                          : u.status === "approved"
-                            ? "bg-emerald-900/50 text-emerald-400"
-                            : "bg-slate-700 text-slate-300"
-                      }`}
-                    >
-                      {u.status}
-                    </span>
-                  </td>
-                </tr>
+                  user={u}
+                  onSelect={handleSelectUser}
+                />
               ))
             )}
           </tbody>
@@ -269,7 +274,7 @@ export default function RosterPage() {
       {selectedUser && (
         <SelectedUsersModel
           user={selectedUser}
-          onClose={() => setSelectedUser(null)}
+          onClose={handleCloseModal}
           onChangeRole={handleChangeRole}
           onReject={handleReject}
           onApprove={handleApprove}
