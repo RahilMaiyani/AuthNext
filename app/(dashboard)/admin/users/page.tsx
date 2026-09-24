@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/globalTypes";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useAuth } from "@/app/context/AuthContext";
 import {
   changeUserStatus,
   changeRole,
@@ -16,7 +15,6 @@ import toast from "react-hot-toast";
 import { success } from "zod";
 
 export default function RosterPage() {
-  const { user } = useAuth();
   const [users, setUsers] = useState<IUser[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -29,12 +27,10 @@ export default function RosterPage() {
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
   const debouncedSearch = useDebounce(search, 500);
-
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, role, status]);
+  const activeRefreshId = useRef(0);
 
   const fetchUsers = useCallback(async () => {
+    const currentRefreshId = ++activeRefreshId.current;
     setIsLoading(true);
     try {
       const response = await getUsers({
@@ -44,6 +40,10 @@ export default function RosterPage() {
         role,
         status,
       });
+
+      if (currentRefreshId !== activeRefreshId.current) {
+        return;
+      }
 
       if (response.users) {
         setUsers(response.users);
@@ -56,7 +56,9 @@ export default function RosterPage() {
     } catch (error) {
       console.error("Failed to fetch directory:", error);
     } finally {
-      setIsLoading(false);
+      if (currentRefreshId === activeRefreshId.current) {
+        setIsLoading(false);
+      }
     }
   }, [page, debouncedSearch, role, status]);
 
@@ -71,9 +73,9 @@ export default function RosterPage() {
     setPage(1);
   };
 
-  const handleSelectUser = (u: IUser) => {
+  const handleSelectUser = useCallback((u: IUser) => {
     setSelectedUser(u);
-  };
+  }, []);
 
   const handleChangeUserStatus = async (status: string) => {
     if (!selectedUser?._id) return;
@@ -144,6 +146,11 @@ export default function RosterPage() {
     }
   };
 
+  const handleSearch = (e: any) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
+
   const handleCloseModal = () => {
     setSelectedUser(null);
   };
@@ -161,7 +168,7 @@ export default function RosterPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e)}
             placeholder="Search by email..."
             className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
           />
