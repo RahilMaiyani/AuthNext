@@ -25,7 +25,6 @@ export const register = async ({
 
     if (role) {
       if (!["user", "admin"].includes(role!)) {
-        // console.log("Invalid value of role");
         return { success: false, message: "Invalid value of role" };
       }
     }
@@ -33,7 +32,6 @@ export const register = async ({
     const existing = await User.exists({ email: normalizedEmail });
 
     if (existing) {
-      // console.log("User already exists.");
       return { success: false, message: "User already exists." };
     }
 
@@ -49,7 +47,6 @@ export const register = async ({
     }
     revalidateTag("users", { expire: 0 });
 
-    // console.log("User registered successfully.");
     return {
       success: true,
       message: "User registered successfully.",
@@ -244,18 +241,15 @@ export const resetPassword = async ({
     const user = await User.findById(userId).select("+password");
 
     if (!user) {
-      console.log("User NOT found.");
       return { success: false, message: "User not found" };
     }
 
     const isOldPassMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isOldPassMatch) {
-      console.log("Old password Incorrect.");
       return { success: false, message: "Old password Incorrect." };
     }
 
     if (oldPassword === newPassword) {
-      console.log("Password must be different from previous");
       return {
         success: false,
         message: "Password must be different from previous",
