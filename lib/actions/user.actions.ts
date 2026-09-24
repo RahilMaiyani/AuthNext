@@ -25,7 +25,7 @@ export const register = async ({
 
     if (role) {
       if (!["user", "admin"].includes(role!)) {
-        console.log("Invalid value of role");
+        // console.log("Invalid value of role");
         return { success: false, message: "Invalid value of role" };
       }
     }
@@ -33,7 +33,7 @@ export const register = async ({
     const existing = await User.exists({ email: normalizedEmail });
 
     if (existing) {
-      console.log("User already exists.");
+      // console.log("User already exists.");
       return { success: false, message: "User already exists." };
     }
 
@@ -49,7 +49,7 @@ export const register = async ({
     }
     revalidateTag("users", { expire: 0 });
 
-    console.log("User registered successfully.");
+    // console.log("User registered successfully.");
     return {
       success: true,
       message: "User registered successfully.",
