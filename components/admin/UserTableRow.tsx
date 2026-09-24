@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { IUser } from "@/lib/globalTypes";
 
 interface UserTableRowProps {
@@ -8,7 +7,7 @@ interface UserTableRowProps {
   onSelect: (user: IUser) => void;
 }
 
-export const UserTableRow = React.memo(function UserTableRow({
+export const UserTableRow = function UserTableRow({
   user,
   onSelect,
 }: UserTableRowProps) {
@@ -35,4 +34,4 @@ export const UserTableRow = React.memo(function UserTableRow({
       </td>
     </tr>
   );
-});
+};

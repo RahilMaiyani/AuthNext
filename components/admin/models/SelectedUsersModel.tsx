@@ -6,8 +6,8 @@ interface UserModalProps {
   user: IUser;
   onClose: () => void;
   onChangeRole: (id: string, role: string) => Promise<void>;
-  onReject: (id: string) => Promise<void>;
-  onApprove: (id: string) => Promise<void>;
+  onApprove: () => Promise<void>;
+  onReject: () => Promise<void>;
   onDelete: () => void;
 }
 
@@ -15,8 +15,8 @@ export default function UserModal({
   user,
   onClose,
   onChangeRole,
-  onReject,
   onApprove,
+  onReject,
   onDelete,
 }: UserModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -30,13 +30,13 @@ export default function UserModal({
 
   const handleRejectClick = async () => {
     setIsProcessing(true);
-    await onReject(user._id);
+    await onReject();
     setIsProcessing(false);
   };
 
   const handleApproveClick = async () => {
     setIsProcessing(true);
-    await onApprove(user._id);
+    await onApprove();
     setIsProcessing(false);
   };
 
@@ -111,7 +111,8 @@ export default function UserModal({
               disabled={
                 isProcessing ||
                 user.role === "admin" ||
-                user.status === "pending"
+                user.status === "pending" ||
+                user.status === "rejected"
               }
               onClick={() => handleRoleClick("admin")}
               className="flex-1 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white border border-blue-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -122,7 +123,8 @@ export default function UserModal({
               disabled={
                 isProcessing ||
                 user.role === "user" ||
-                user.status === "pending"
+                user.status === "pending" ||
+                user.status === "rejected"
               }
               onClick={() => handleRoleClick("user")}
               className="flex-1 py-2 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"

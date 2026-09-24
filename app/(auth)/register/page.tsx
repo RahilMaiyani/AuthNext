@@ -25,12 +25,12 @@ export default function RegisterPage() {
       // const response = await api.post("/auth/register", { email, password });
       const response = await register({ email, password });
 
-      const { success, message, newUser } = response;
+      const { success, message } = response;
       if (!success) {
         throw new Error(message);
       }
 
-      if (newUser) {
+      if (success) {
         toast("Redirecting to Login...");
         (setConfirmation(message), " redirecting to Login...");
         setTimeout(() => {

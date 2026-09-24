@@ -16,6 +16,8 @@ export const register = async ({
   role?: string;
 }) => {
   try {
+    await dbConnect();
+
     if (!email || !password) {
       console.log("Invalid Credentials.");
       return { success: false, message: "Invalid Credentials." };
@@ -27,7 +29,7 @@ export const register = async ({
       }
     }
 
-    const existing = await User.exists({ email });
+    const existing = await User.exists({ email: email.trim().toLowerCase() });
 
     if (existing) {
       console.log("User already exists.");
@@ -41,21 +43,18 @@ export const register = async ({
       status: "pending",
     });
 
-    const serializedUser = {
-      ...newUser.toObject(),
-      _id: newUser._id.toString(),
-    };
-
+    if (!newUser) {
+      return { success: false, message: "User registration failed" };
+    }
     revalidateTag("users", { expire: 0 });
 
-    console.log("User registerd successfully.");
+    console.log("User registered successfully.");
     return {
       success: true,
-      message: "User registerd successfully.",
-      newUser: serializedUser,
+      message: "User registered successfully.",
     };
   } catch (e: any) {
-    console.error("Error at getUsers :", e.message);
+    console.error("Error at register :", e.message);
     return { success: false, message: e.message };
   }
 };
@@ -88,19 +87,20 @@ export const getUsers = async ({
     if (role) query.role = role;
     if (status) query.status = status;
 
-    const users = await User.find(query)
-      .select(["-password", "-createdAt", "-updatedAt", "-__v"])
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean();
+    const [users, totalUsers] = await Promise.all([
+      User.find(query)
+        .select(["-password", "-createdAt", "-updatedAt", "-__v"])
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      User.countDocuments(query),
+    ]);
 
     const serializedUsers = users.map((user: any) => ({
       ...user,
       _id: user._id.toString(),
     }));
-
-    const totalUsers = await User.countDocuments(query);
 
     return {
       users: serializedUsers,
@@ -147,7 +147,7 @@ export const changeUserStatus = async ({
     await dbConnect();
 
     if (!id.trim() || !status) {
-      return { error: "Parameters not received" };
+      return { success: false, message: "Parameters not received" };
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -159,16 +159,16 @@ export const changeUserStatus = async ({
       .lean();
 
     if (!updatedUser) {
-      return { error: "User not found" };
+      return { success: false, message: "User not found" };
     }
 
-    const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
+    // const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
 
     revalidateTag("users", { expire: 0 });
-    return { message: "User status updated", user: serializedUser };
+    return { success: true, message: "User status updated" };
   } catch (e: any) {
     console.error("Error at approveUser :", e.message);
-    return { error: e.message };
+    return { success: false, message: e.message };
   }
 };
 
@@ -182,7 +182,7 @@ export const changeRole = async ({
   try {
     await dbConnect();
     if (!id.trim() || !role) {
-      return { error: "Parameters not received" };
+      return { success: false, message: "Parameters not received" };
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -194,14 +194,18 @@ export const changeRole = async ({
       .lean();
 
     if (!updatedUser) {
-      return { error: "User not found" };
+      return { success: false, message: "User not found" };
     }
 
     const serializedUser = { ...updatedUser, _id: updatedUser._id.toString() };
 
     revalidateTag("users", { expire: 0 });
 
-    return { message: "User role updated", user: serializedUser };
+    return {
+      success: true,
+      message: "User role updated",
+      user: serializedUser,
+    };
   } catch (e: any) {
     console.error("Error at change role :", e.message);
     return { error: e.message };
@@ -290,7 +294,7 @@ export const deleteUser = async (userId: string = "", id: string = "") => {
 
     return { success: true, message: "Successfully deleted user" };
   } catch (e: any) {
-    console.error("Error at reset password :", e.message);
+    console.error("Error at delete user :", e.message);
     return { success: false, message: e.message };
   }
 };

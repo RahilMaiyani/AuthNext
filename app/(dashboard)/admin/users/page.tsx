@@ -13,6 +13,7 @@ import {
 import SelectedUsersModel from "@/components/admin/models/SelectedUsersModel";
 import { UserTableRow } from "@/components/admin/UserTableRow";
 import toast from "react-hot-toast";
+import { success } from "zod";
 
 export default function RosterPage() {
   const { user } = useAuth();
@@ -70,66 +71,70 @@ export default function RosterPage() {
     setPage(1);
   };
 
-  const handleSelectUser = useCallback((u: IUser) => {
+  const handleSelectUser = (u: IUser) => {
     setSelectedUser(u);
-  }, []);
+  };
 
-  const handleReject = useCallback(async (userId: string) => {
+  const handleChangeUserStatus = async (status: string) => {
+    if (!selectedUser?._id) return;
+
+    const targetId = selectedUser._id;
+    const targetEmail = selectedUser.email;
+
     try {
-      await changeUserStatus({ id: userId, status: "rejected" });
+      const res = await changeUserStatus({ id: targetId, status });
+
+      if (res?.success === false) {
+        alert(res.message || `Failed to ${status} user.`);
+        return;
+      }
+
       setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, status: "rejected" } : u)),
+        prev.map((u) => (u._id === targetId ? { ...u, status } : u)),
       );
-      setSelectedUser((current) => {
-        if (current) toast(`${current.email} is Rejected`);
-        return null;
-      });
-    } catch (error) {
-      console.error("Failed to reject user", error);
-      alert("Failed to reject user. Please try again.");
-    }
-  }, []);
 
-  const handleApprove = useCallback(async (userId: string) => {
-    try {
-      await changeUserStatus({ id: userId, status: "approved" });
-      setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, status: "approved" } : u)),
-      );
-      setSelectedUser((current) => {
-        if (current) toast(`${current.email} is Approved`);
-        return null;
-      });
+      toast.success(`${targetEmail} is ${status}`);
+      setSelectedUser(null);
     } catch (error) {
-      console.log("Failed to approve user", error);
-      alert("Failed to approve user. Please try again.");
+      console.error(`Failed to update status to ${status}`, error);
+      alert(`Failed to update user. Please try again.`);
     }
-  }, []);
+  };
 
-  const handleChangeRole = useCallback(async (id: string, newRole: string) => {
+  const handleChangeRole = async (id: string, newRole: string) => {
     try {
-      await changeRole({ id, role: newRole });
+      const res = await changeRole({ id, role: newRole });
+
+      if (res?.success === false) {
+        alert(res.message || `Failed to ${newRole} user.`);
+        return;
+      }
       setUsers((prev) =>
         prev.map((u) => (u._id === id ? { ...u, role: newRole } : u)),
       );
-      setSelectedUser((current) => {
-        if (current) toast(`Role changed to ${newRole} for ${current.email}`);
-        return null;
-      });
+      if (selectedUser) {
+        toast.success(`${selectedUser.email} is now ${newRole}`);
+      }
+      setSelectedUser(null);
     } catch (error) {
       console.log("Failed to change role of user", error);
     }
-  }, []);
+  };
 
-  const handleDeleteUser = useCallback(async () => {
+  const handleDeleteUser = async () => {
     if (!selectedUser) return;
     const targetId = selectedUser._id;
     const targetEmail = selectedUser.email;
 
     try {
-      const response = await deleteUser(user?._id, targetId);
+      const res = await deleteUser(user?._id, targetId);
+
+      if (!res.success) {
+        alert(res.message || `Failed to delete user.`);
+        return;
+      }
+
       toast(`${targetEmail} is Deleted`);
-      setUsers((prev) => prev.filter((u) => u._id !== targetId));
       setSelectedUser(null);
       await fetchUsers();
       // console.log(response.message);
@@ -137,11 +142,11 @@ export default function RosterPage() {
       console.log("Failed to delete user", error.message);
       alert("Failed to delete user. Please try again.");
     }
-  }, [selectedUser, user?._id]);
+  };
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setSelectedUser(null);
-  }, []);
+  };
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -275,8 +280,8 @@ export default function RosterPage() {
           user={selectedUser}
           onClose={handleCloseModal}
           onChangeRole={handleChangeRole}
-          onReject={handleReject}
-          onApprove={handleApprove}
+          onApprove={() => handleChangeUserStatus("approved")}
+          onReject={() => handleChangeUserStatus("rejected")}
           onDelete={handleDeleteUser}
         />
       )}

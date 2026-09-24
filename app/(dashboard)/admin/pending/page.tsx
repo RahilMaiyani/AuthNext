@@ -2,28 +2,32 @@
 
 import { changeUserStatus, getPendingUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/globalTypes";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-const Pending = () => {
+export default function Pending() {
   const [pendingUsers, setPendingUsers] = useState<IUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPendingUsers = async () => {
-      try {
-        const pu = await getPendingUsers();
-        if (pu?.pendingUsers) {
-          setPendingUsers(pu.pendingUsers);
-        }
-      } catch (error) {
-        console.error("Failed to fetch pending users", error);
-      } finally {
-        setIsLoading(false);
+  const fetchPendingUsers = useCallback(async () => {
+    try {
+      const response = await getPendingUsers();
+      if (response.error) {
+        alert(response.error || "Failed to fetch pending users");
+        return;
       }
-    };
-
-    fetchPendingUsers();
+      if (response?.pendingUsers) {
+        setPendingUsers(response.pendingUsers);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending users", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPendingUsers();
+  }, [fetchPendingUsers]);
 
   const handleApprove = async (userId: string) => {
     try {
@@ -88,6 +92,4 @@ const Pending = () => {
       )}
     </div>
   );
-};
-
-export default Pending;
+}
