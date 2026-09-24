@@ -1,10 +1,10 @@
 "use server";
 
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheLife, cacheTag, revalidateTag } from "next/cache";
 import dbConnect from "../dbConnect";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import { revalidateTag } from "next/cache";
+import { verifyAdmin } from "../auth";
 
 export const register = async ({
   email,
@@ -18,10 +18,11 @@ export const register = async ({
   try {
     await dbConnect();
 
-    if (!email || !password) {
-      console.log("Invalid Credentials.");
-      return { success: false, message: "Invalid Credentials." };
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      return { success: false, message: "Email and password are required." };
     }
+
     if (role) {
       if (!["user", "admin"].includes(role!)) {
         console.log("Invalid value of role");
@@ -29,7 +30,7 @@ export const register = async ({
       }
     }
 
-    const existing = await User.exists({ email: email.trim().toLowerCase() });
+    const existing = await User.exists({ email: normalizedEmail });
 
     if (existing) {
       console.log("User already exists.");
@@ -72,11 +73,12 @@ export const getUsers = async ({
   role: string;
   status: string;
 }) => {
-  "use cache";
-  cacheTag("users", page.toString(), limit.toString(), search, role, status);
-  cacheLife("minutes");
-
   try {
+    const auth = await verifyAdmin();
+    if (!auth.authorized) {
+      return { success: false, message: auth.error };
+    }
+
     const skip = (page - 1) * limit;
     await dbConnect();
 
@@ -115,6 +117,11 @@ export const getUsers = async ({
 
 export const getPendingUsers = async () => {
   try {
+    const auth = await verifyAdmin();
+    if (!auth.authorized) {
+      return { success: false, message: auth.error };
+    }
+
     await dbConnect();
     const pendingUsers = await User.find({ status: "pending" })
       .select(["-password", "-createdAt", "-updatedAt", "-__v"])
@@ -144,6 +151,11 @@ export const changeUserStatus = async ({
   status: string;
 }) => {
   try {
+    const auth = await verifyAdmin();
+    if (!auth.authorized) {
+      return { success: false, message: auth.error };
+    }
+
     await dbConnect();
 
     if (!id.trim() || !status) {
@@ -180,6 +192,11 @@ export const changeRole = async ({
   role: string;
 }) => {
   try {
+    const auth = await verifyAdmin();
+    if (!auth.authorized) {
+      return { success: false, message: auth.error };
+    }
+
     await dbConnect();
     if (!id.trim() || !role) {
       return { success: false, message: "Parameters not received" };
@@ -208,7 +225,7 @@ export const changeRole = async ({
     };
   } catch (e: any) {
     console.error("Error at change role :", e.message);
-    return { error: e.message };
+    return { success: false, message: e.message };
   }
 };
 
@@ -262,30 +279,35 @@ export const resetPassword = async ({
   }
 };
 
-export const deleteUser = async (userId: string = "", id: string = "") => {
+export const deleteUser = async (id: string = "") => {
   try {
-    await dbConnect();
-
-    if (!userId.trim() || !id.trim()) {
-      return { success: false, message: "Parameter not received" };
+    const auth = await verifyAdmin();
+    if (!auth.authorized) {
+      return { success: false, message: auth.error };
     }
 
-    const user = await User.findById(id);
-    if (!user) {
+    const cleanTargetId = id.trim();
+    if (!cleanTargetId) {
+      return { success: false, message: "Target user ID not received." };
+    }
+
+    await dbConnect();
+
+    const targetUser = await User.findById(cleanTargetId).select("role");
+    if (!targetUser) {
       return { success: false, message: "User not found." };
     }
 
-    if (user.role === "admin") {
-      if (userId !== process.env.SUPER_ADMIN_ID) {
+    if (targetUser.role === "admin") {
+      if (auth.callerId !== process.env.SUPER_ADMIN_ID) {
         return {
           success: false,
-          message: "Forbidden: Only super admin can delete other admin.",
+          message: "Forbidden: Only super admin can delete another admin.",
         };
       }
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
-
+    const deletedUser = await User.findByIdAndDelete(cleanTargetId);
     if (!deletedUser) {
       return { success: false, message: "User not Deleted." };
     }
@@ -294,7 +316,7 @@ export const deleteUser = async (userId: string = "", id: string = "") => {
 
     return { success: true, message: "Successfully deleted user" };
   } catch (e: any) {
-    console.error("Error at delete user :", e.message);
+    console.error("Error at deleteUser :", e.message);
     return { success: false, message: e.message };
   }
 };

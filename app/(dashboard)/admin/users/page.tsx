@@ -127,7 +127,7 @@ export default function RosterPage() {
     const targetEmail = selectedUser.email;
 
     try {
-      const res = await deleteUser(user?._id, targetId);
+      const res = await deleteUser(targetId);
 
       if (!res.success) {
         alert(res.message || `Failed to delete user.`);
